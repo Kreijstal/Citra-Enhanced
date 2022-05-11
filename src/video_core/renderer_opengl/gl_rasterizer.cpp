@@ -8,6 +8,9 @@
 #include <tuple>
 #include <utility>
 #include <glad/glad.h>
+#ifdef ARCHITECTURE_ARM64
+#include <arm_neon.h>
+#endif
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -257,10 +260,20 @@ void RasterizerOpenGL::SyncEntireState() {
  * these issues, making this basic implementation actually more accurate to the hardware.
  */
 static bool AreQuaternionsOpposite(Common::Vec4<Pica::float24> qa, Common::Vec4<Pica::float24> qb) {
+// make a special implementation for ARM, fixes poor performance with Batman: Arkham Origins Blackgate.
+#ifdef ARCHITECTURE_ARM64
+    const float32_t a[4] = {qa.x.ToFloat32(), qa.y.ToFloat32(), qa.z.ToFloat32(), qa.w.ToFloat32()};
+    const float32_t b[4] = {qb.x.ToFloat32(), qb.y.ToFloat32(), qb.z.ToFloat32(), qb.w.ToFloat32()};
+    const float32x4_t aa = vld1q_f32(a);
+    const float32x4_t bb = vld1q_f32(b);
+    const float32x4_t mm = vmulq_f32(aa, bb);
+    const float32x2_t s2 = vadd_f32(vget_high_f32(mm), vget_low_f32(mm));
+    return (vget_lane_f32(vpadd_f32(s2, s2), 0) < 0.f);
+#else
     Common::Vec4f a{qa.x.ToFloat32(), qa.y.ToFloat32(), qa.z.ToFloat32(), qa.w.ToFloat32()};
     Common::Vec4f b{qb.x.ToFloat32(), qb.y.ToFloat32(), qb.z.ToFloat32(), qb.w.ToFloat32()};
-
     return (Common::Dot(a, b) < 0.f);
+#endif
 }
 
 void RasterizerOpenGL::AddTriangle(const Pica::Shader::OutputVertex& v0,
