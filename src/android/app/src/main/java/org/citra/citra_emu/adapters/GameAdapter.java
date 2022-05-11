@@ -16,7 +16,9 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.citra.citra_emu.NativeLibrary;
 import org.citra.citra_emu.R;
+import org.citra.citra_emu.activities.CheatCodeEditorActivity;
 import org.citra.citra_emu.activities.EmulationActivity;
 import org.citra.citra_emu.model.GameDatabase;
 import org.citra.citra_emu.ui.DividerItemDecoration;
@@ -34,7 +36,7 @@ import java.util.stream.Stream;
  * large dataset.
  */
 public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> implements
-        View.OnClickListener {
+        View.OnClickListener, View.OnLongClickListener {
     private Cursor mCursor;
     private GameDataSetObserver mObserver;
 
@@ -64,6 +66,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
                 .inflate(R.layout.card_game, parent, false);
 
         gameCard.setOnClickListener(this);
+        gameCard.setOnLongClickListener(this);
 
         // Use that view to create a ViewHolder.
         return new GameViewHolder(gameCard);
@@ -202,6 +205,13 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
         GameViewHolder holder = (GameViewHolder) view.getTag();
 
         EmulationActivity.launch((FragmentActivity) view.getContext(), holder.path, holder.title);
+    }
+
+    @Override
+    public boolean onLongClick(View clicked) {
+        GameViewHolder holder = (GameViewHolder) clicked.getTag();
+        CheatCodeEditorActivity.launch(clicked.getContext(), holder.gameId, holder.title);
+        return true;
     }
 
     public static class SpacesItemDecoration extends DividerItemDecoration {

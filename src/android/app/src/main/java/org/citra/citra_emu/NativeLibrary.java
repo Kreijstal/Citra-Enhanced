@@ -143,7 +143,7 @@ public final class NativeLibrary {
 
     public static native String GetDescription(String filename);
 
-    public static native String GetGameId(String filename);
+    public static native String GetGameId(String path);
 
     public static native String GetRegions(String filename);
 

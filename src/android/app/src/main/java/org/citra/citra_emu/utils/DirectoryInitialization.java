@@ -102,6 +102,14 @@ public final class DirectoryInitialization {
         return false;
     }
 
+    public static File getCheatCodeFile(String programId) {
+        File cheatsPath = new File(userPath, "cheats");
+        if (!cheatsPath.isDirectory() && !cheatsPath.mkdir()) {
+            return null;
+        }
+        return new File(cheatsPath, programId + ".txt");
+    }
+
     private static void initializeInternalStorage(Context context) {
         File sysDirectory = new File(context.getFilesDir(), "Sys");
 

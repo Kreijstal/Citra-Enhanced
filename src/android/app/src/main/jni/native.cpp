@@ -54,6 +54,8 @@ std::mutex paused_mutex;
 std::mutex running_mutex;
 std::condition_variable running_cv;
 
+std::map<std::string, std::unique_ptr<Loader::AppLoader>> s_app_loaders;
+
 } // Anonymous namespace
 
 static std::string GetJString(JNIEnv* env, jstring jstr) {
@@ -65,6 +67,21 @@ static std::string GetJString(JNIEnv* env, jstring jstr) {
     std::string result = s;
     env->ReleaseStringUTFChars(jstr, s);
     return result;
+}
+
+static Loader::AppLoader* GetAppLoader(const std::string& path) {
+    auto iter = s_app_loaders.find(path);
+    if (iter != s_app_loaders.end()) {
+        return iter->second.get();
+    }
+
+    auto result = s_app_loaders.emplace(path, Loader::GetLoader(path));
+    return result.first->second.get();
+}
+
+jstring ToJString(const std::string& str) {
+    jstring jstr = IDCache::GetEnvForThread()->NewStringUTF(str.c_str());
+    return jstr;
 }
 
 static bool DisplayAlertMessage(const char* caption, const char* text, bool yes_no) {
@@ -471,10 +488,12 @@ jstring Java_org_citra_citra_1emu_NativeLibrary_GetDescription(JNIEnv* env,
     return j_filename;
 }
 
-jstring Java_org_citra_citra_1emu_NativeLibrary_GetGameId(JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz,
-                                                          jstring j_filename) {
-    return j_filename;
+JNIEXPORT jstring JNICALL Java_org_citra_citra_1emu_NativeLibrary_GetGameId(JNIEnv* env, jclass obj,
+                                                                           jstring jPath) {
+    Loader::AppLoader* app_loader = GetAppLoader(GetJString(env, jPath));
+    u64 programId;
+    app_loader->ReadProgramId(programId);
+    return ToJString(fmt::format("{:016X}", programId));
 }
 
 jstring Java_org_citra_citra_1emu_NativeLibrary_GetRegions(JNIEnv* env,
