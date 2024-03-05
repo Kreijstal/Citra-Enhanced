@@ -1,6 +1,6 @@
-**DISCONTINUED PROJECT USE CITRA OFFICAL INSTEAD**
+**DISCONTINUED PROJECT**
 ==============
-[Citra Nightly Android Downlaod](https://citra-emu.org/download/#)
+
 
 As you can notice , there haven't been any new builds for a while now **becuase i officially announce that this project is discontinued and wont be receiving any more updates** 
 
